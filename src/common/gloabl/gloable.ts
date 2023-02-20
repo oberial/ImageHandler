@@ -1,0 +1,1 @@
+export const TEST_SYMBOL=Symbol('TEST 测试')

@@ -1,0 +1,67 @@
+    .slide {
+        height: 200px;
+        overflow: hidden;
+        position:relative;
+        padding: 10px;
+    }
+
+    .slide .image {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        width: 100%;
+        span {
+            border: none;
+            font-size: xx-large;
+            color:white;
+            cursor: pointer;
+        }
+
+        .left {
+            position: absolute;
+            left:27%;
+        }
+        .right {
+            position: absolute;
+            right:27%;
+        }
+        img {
+            object-fit:fill;
+            height: 1000px;
+            width:800px;
+        }
+    }
+    .slide .option {
+        padding: 10px 45%;
+        display: grid;
+        justify-items: center;
+        align-items: center;
+        grid-template-columns: repeat(4,1fr);
+        column-gap: 10px;
+    } 
+
+    .slide .option span::before {
+        content: "";
+        display: block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color:rgb(63, 63, 60);
+    }
+
+    .slide .option span.check::before {
+        display: block;
+        content: "";
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background-color: white;
+    }
+
+    .fade-enter-active, .fade-leave-active {
+	    transition: opacity .25s
+    }
+    .fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
+        opacity: 0
+    }
