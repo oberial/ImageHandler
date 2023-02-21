@@ -64,7 +64,8 @@ import {ref} from 'vue';
     let movingLenghtX:number=0;
 
     let zoom=ref<number>(0);
-    const scaleConst:number=1.1;
+    const zoomConst:number=1.1;
+    let zoomBei=1;
 
     function drag() {
         doingTh.value="drag";
@@ -151,56 +152,64 @@ import {ref} from 'vue';
                 ctx?.clearRect(0,0,canvas.width,canvas.height);
                     endPointY = e.offsetY;
                     endPointX = e.offsetX;
-                    let bei=Math.pow(scaleConst,zoom.value);
-                    let movingY=(endPointY - startPointY)/bei;
-                    let movingX=(endPointX - startPointX)/bei;
+                    let movingY=(endPointY - startPointY)/zoomBei;
+                    let movingX=(endPointX - startPointX)/zoomBei;
                     startPointY = endPointY;
                     startPointX = endPointX;
                     movingLenghtY= movingY + movingLenghtY;
                     movingLenghtX= movingX + movingLenghtX;
+
+                    if(movingLenghtY*zoomBei+(docHeight-canvas.height)/2>0) {
+                        movingLenghtY=-(docHeight-canvas.height)/(2*zoomBei);
+                    }
+                    if(movingLenghtY*zoomBei + canvas.height+(docHeight-canvas.height)/2<docHeight)
+                    {
+                        movingLenghtY=(docHeight-canvas.height-(docHeight-canvas.height)/2)/zoomBei;
+                    }
+
+                    if(movingLenghtX*zoomBei+(docWidth-canvas.width)/2>0) {
+                        movingLenghtX=-(docWidth-canvas.width)/(2*zoomBei);
+                    }
+                    if(movingLenghtX*zoomBei + canvas.width+(docWidth-canvas.width)/2 <docWidth)
+                    {
+                        movingLenghtX=(docWidth- canvas.width-(docWidth-canvas.width)/2)/zoomBei;
+                    }
                     console.log(movingLenghtY,movingLenghtX);
-                    if(movingLenghtY+(docHeight-baseCanvasHeight)/2>0) {
-                        movingLenghtY=-(docHeight-baseCanvasHeight)/2;
-                    }
-                    if(movingLenghtX+(docWidth-baseCanvasWidth)/2>0) {
-                        movingLenghtX=-(docWidth-baseCanvasWidth)/2;
-                    }
-                    if(movingLenghtY + canvas.height+(docHeight-baseCanvasHeight)/2<docHeight)
-                    {
-                        movingLenghtY=docHeight-canvas.height-(docHeight-baseCanvasHeight)/2;
-                    }
-                    if(movingLenghtX + canvas.width+(docWidth-baseCanvasWidth)/2 <docWidth)
-                    {
-                        movingLenghtX=docWidth- canvas.width-(docWidth-baseCanvasWidth)/2;
-                    }
-                    ctx?.drawImage(img, (movingLenghtX+(docWidth-baseCanvasWidth)/2)*bei, (movingLenghtY+(docHeight-baseCanvasHeight)/2)*bei,img.width*bei/scaleInfo.scaleBei, img.height*bei/scaleInfo.scaleBei)
+                    console.log('-==--------------------------')
+                    ctx?.drawImage(img, ((docWidth-canvas.width)/2)+(movingLenghtX*zoomBei),((docHeight-canvas.height)/2)+(movingLenghtY*zoomBei),img.width*zoomBei/scaleInfo.scaleBei, img.height*zoomBei/scaleInfo.scaleBei)
             }
         })
 
         canvas?.addEventListener('mousewheel',(e)=>{
+            
             if (e.wheelDelta > 0) {
                 zoom.value++;
+                if(zoom.value>9) {
+                    zoom.value=9;
+                }
                 // 放大
             } else {
                 // 缩小
                 zoom.value--;
+                if(zoom.value<0) {
+                    zoom.value=0;
+                }
+                movingLenghtX=movingLenghtX-movingLenghtX/(zoom.value+1);
+                movingLenghtY=movingLenghtY-movingLenghtY/(zoom.value+1);
             }
 
-            if(zoom.value>9) {
-                zoom.value=9;
-            }
-            if(zoom.value<0) {
-                zoom.value=0;
-            }
-            let bei=Math.pow(scaleConst,zoom.value);
-            console.log(zoom.value);
-            canvas.height=baseCanvasHeight*bei;
-            canvas.width=baseCanvasWidth*bei;
+
+
+
+
+            zoomBei=round(Math.pow(zoomConst,zoom.value));
+            canvas.height=baseCanvasHeight*zoomBei;
+            canvas.width=baseCanvasWidth*zoomBei;
                 // ctx?.beginPath();
                 // ctx?.rect((movingLenghtX+docWidth)/4,(movingLenghtY+docHeight)/4,(movingLenghtX+docWidth)/2,(movingLenghtY+docHeight)/2);
                 // ctx?.clip();
             // alert(bei);
-            ctx?.drawImage(img,((docWidth-canvas.width)/2),((docHeight-canvas.height)/2),bei*img.width/(scaleInfo.scaleBei*scaleInfo2.scaleBei) ,bei*img.height/(scaleInfo.scaleBei*scaleInfo2.scaleBei));
+            ctx?.drawImage(img,movingLenghtX*zoomBei+((docWidth-canvas.width)/2),movingLenghtY*zoomBei+((docHeight-canvas.height)/2),zoomBei*baseCanvasWidth ,zoomBei*baseCanvasHeight);
         })
     }
 
@@ -234,7 +243,12 @@ import {ref} from 'vue';
         // ctx2?.scale(1,-1);
         // ctx2?.fill();
         // if(scaleInfo.isWidthScale) {
-        ctx2?.drawImage(img,(radius-drawCenterX+movingLenghtX+(docWidth-baseCanvasWidth)/2)/scaleInfo2.scaleBei,(radius-drawCenterY+movingLenghtY+(docHeight-baseCanvasHeight)/2)/scaleInfo2.scaleBei,img.width/(scaleInfo.scaleBei*scaleInfo2.scaleBei) ,img.height/(scaleInfo.scaleBei*scaleInfo2.scaleBei));
+        ctx2?.drawImage(img,
+        (radius-drawCenterX+movingLenghtX*zoomBei+(docWidth-canvas.width)/2)/scaleInfo2.scaleBei,
+        (radius-drawCenterY+movingLenghtY*zoomBei+(docHeight-canvas.height)/2)/scaleInfo2.scaleBei,
+        baseCanvasWidth*zoomBei/scaleInfo2.scaleBei ,
+        baseCanvasHeight*zoomBei/scaleInfo2.scaleBei
+        );
         // }
         
 
@@ -243,17 +257,23 @@ import {ref} from 'vue';
 
     function zoomTo(e:any) {
         zoom.value=e.target.value;
-        console.log(zoom.value);
-        let bei=Math.pow(scaleConst,zoom.value);
-        canvas.height=baseCanvasHeight*bei;
-        canvas.width=baseCanvasWidth*bei;
-        ctx?.drawImage(img,((docWidth-canvas.width)/2),((docHeight-canvas.height)/2),bei*img.width/(scaleInfo.scaleBei*scaleInfo2.scaleBei) ,bei*img.height/(scaleInfo.scaleBei*scaleInfo2.scaleBei));
+        zoomBei=round(Math.pow(zoomConst,zoom.value));
+
+        canvas.height=baseCanvasHeight*zoomBei;
+        canvas.width=baseCanvasWidth*zoomBei;
+        ctx?.drawImage(img,((docWidth-canvas.width)/2),((docHeight-canvas.height)/2),zoomBei*img.width/(scaleInfo.scaleBei*scaleInfo2.scaleBei) ,zoomBei*img.height/(scaleInfo.scaleBei*scaleInfo2.scaleBei));
     }
 
     function convertCanvasToImage(canvas:HTMLCanvasElement) {
         let image=new Image();
         image.src=canvas.toDataURL();
         return image;
+    }
+
+    function round(number:number, precision:number=2) {
+        return Math.round(+number + 'e' + precision) / Math.pow(10, precision);
+        //same as:
+        //return Number(Math.round(+number + 'e' + precision) + 'e-' + precision);
     }
 </script>
 
