@@ -1,7 +1,10 @@
 <template>
     <div class="image_modual">
         <div class="image_form">
-            <div class="header">更换头像</div>
+            <div class="header">更换头像            
+                <span>x</span>
+            </div>
+
             <div class="func">
                     <input type="file" accept=".jpg, .jpeg, .png" @input="handlefile" />
             </div>
@@ -9,9 +12,9 @@
                 <div id="container">
                     <div id="imagecontent"></div>
                     <div id="suo">
-                        <button>-</button>
-                        <input type="range" min="0" :max="9" :value="zoom" @input="zoomTo"/>
-                        <button>+</button>
+                        <button @click="">-</button>
+                        <input type="range" min="0" :max="9" v-model="zoom" />
+                        <button @click="">+</button>
                     </div>
                     <div id="imagelist"></div>
                 </div>
@@ -27,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import {ref} from 'vue';
 
     type ScaleInfo={
@@ -166,64 +169,56 @@ import {ref} from 'vue';
                     startPointX = endPointX;
                     movingLenghtY= movingY + movingLenghtY;
                     movingLenghtX= movingX + movingLenghtX;
-
-                    if(movingLenghtY*zoomBei+(docHeight-canvas.height)/2>0) {
-                        movingLenghtY=-(docHeight-canvas.height)/(2*zoomBei);
-                    }
-                    if(movingLenghtY*zoomBei + canvas.height+(docHeight-canvas.height)/2<docHeight)
-                    {
-                        movingLenghtY=(docHeight-canvas.height-(docHeight-canvas.height)/2)/zoomBei;
-                    }
-
-                    if(movingLenghtX*zoomBei+(docWidth-canvas.width)/2>0) {
-                        movingLenghtX=-(docWidth-canvas.width)/(2*zoomBei);
-                    }
-                    if(movingLenghtX*zoomBei + canvas.width+(docWidth-canvas.width)/2 <docWidth)
-                    {
-                        movingLenghtX=(docWidth- canvas.width-(docWidth-canvas.width)/2)/zoomBei;
-                    }
-                    console.log(movingLenghtY,movingLenghtX);
-                    console.log('-==--------------------------')
+                    boundaryCalc();
                     ctx?.drawImage(img, ((docWidth-canvas.width)/2)+(movingLenghtX*zoomBei),((docHeight-canvas.height)/2)+(movingLenghtY*zoomBei),img.width*zoomBei/scaleInfo.scaleBei, img.height*zoomBei/scaleInfo.scaleBei)
             }
         })
 
-        canvas?.addEventListener('mousewheel',(e)=>{
-            
+        canvas?.addEventListener('mousewheel',(e:any)=>{
             if (e.wheelDelta > 0) {
+                // 放大
                 zoom.value++;
                 if(zoom.value>9) {
                     zoom.value=9;
                 }
-                // 放大
             } else {
                 // 缩小
                 zoom.value--;
                 if(zoom.value<0) {
                     zoom.value=0;
                 }
-                movingLenghtX=movingLenghtX-movingLenghtX/(zoom.value+1);
-                movingLenghtY=movingLenghtY-movingLenghtY/(zoom.value+1);
             }
-
-
-
-
-
-            zoomBei=round(Math.pow(zoomConst,zoom.value));
-            canvas.height=baseCanvasHeight*zoomBei;
-            canvas.width=baseCanvasWidth*zoomBei;
-                // ctx?.beginPath();
-                // ctx?.rect((movingLenghtX+docWidth)/4,(movingLenghtY+docHeight)/4,(movingLenghtX+docWidth)/2,(movingLenghtY+docHeight)/2);
-                // ctx?.clip();
-            // alert(bei);
-            ctx?.drawImage(img,movingLenghtX*zoomBei+((docWidth-canvas.width)/2),movingLenghtY*zoomBei+((docHeight-canvas.height)/2),zoomBei*baseCanvasWidth ,zoomBei*baseCanvasHeight);
         })
+    }
+
+    function boundaryCalc() {
+        //画布上鼠标右滑，画布偏移坐标正向增大，图片跟随鼠标右移movingLenghtX，方向为正
+        console.log(movingLenghtX,movingLenghtY);
+        if(movingLenghtX*zoomBei-(canvas.width-docWidth)/2>0) {
+            movingLenghtX = (canvas.width-docWidth)/(2*zoomBei);
+        }
+        //画布上鼠标左滑，画布偏移坐标反向增大，图片跟随鼠标左移movingLenghtX，方向为负
+        if(movingLenghtX*zoomBei +(canvas.width-docWidth)/2<0)
+        {
+            movingLenghtX=(docWidth-canvas.width)/(2*zoomBei);
+        }
+
+        //画布上鼠标下滑，画布偏移坐标正向增大，图片跟随鼠标下移movingLenghtX，方向为正
+        if(movingLenghtY*zoomBei-(canvas.height-docHeight)/2>0) {
+            movingLenghtY=(canvas.height-docHeight)/(2*zoomBei);
+        }
+        //画布上鼠标上滑，画布偏移坐标反向增大，图片跟随鼠标上移movingLenghtX，方向为负数
+        if(movingLenghtY*zoomBei+(canvas.height-docHeight)/2 <0)
+        {
+            movingLenghtY=(docHeight-canvas.height)/(2*zoomBei);
+        }
     }
 
     function clip() {
         // let imageData=ctx?.getImageData(drawCenterX-radius,drawCenterY-radius,2*radius,2*radius) as ImageData ;
-        doingTh.value="clip";
+        if(doingTh.value!=="draw"){
+            return;
+        }
         let c2 = document.createElement('canvas');
         // c2.height=canvas.height;
         // c2.width=canvas.width;
@@ -237,8 +232,7 @@ import {ref} from 'vue';
         // c2.height= canvas.height;
         // c2.width=canvas.width;
         let ctx2=c2?.getContext('2d');
-        ctx2?.save();
-        ctx2?.beginPath();
+        // ctx2?.save();
         ctx2?.arc(
             radius/scaleInfo2.scaleBei,
             radius/scaleInfo2.scaleBei,
@@ -246,7 +240,7 @@ import {ref} from 'vue';
             0, 2 * Math.PI);
 
         ctx2?.clip();
-        ctx2?.fill();
+        // ctx2?.fill();
         // ctx2?.scale(1,-1);
         // ctx2?.fill();
         // if(scaleInfo.isWidthScale) {
@@ -256,17 +250,21 @@ import {ref} from 'vue';
         baseCanvasWidth*zoomBei/scaleInfo2.scaleBei ,
         baseCanvasHeight*zoomBei/scaleInfo2.scaleBei
         );
+        doingTh.value="clip";
         // }
         // ctx2?.putImageData(imageData,0,0);
     }
 
-    function zoomTo(e:any) {
-        zoom.value=e.target.value;
+    // 监听缩放级别
+    watch(zoom,(newValue,oldValue)=>{
         zoomBei=round(Math.pow(zoomConst,zoom.value));
-        canvas.height=baseCanvasHeight*zoomBei;
-        canvas.width=baseCanvasWidth*zoomBei;
-        ctx?.drawImage(img,((docWidth-canvas.width)/2),((docHeight-canvas.height)/2),zoomBei*img.width/(scaleInfo.scaleBei*scaleInfo2.scaleBei) ,zoomBei*img.height/(scaleInfo.scaleBei*scaleInfo2.scaleBei));
-    }
+            canvas.height=baseCanvasHeight*zoomBei;
+            canvas.width=baseCanvasWidth*zoomBei;
+            //滚动时，要重新计算边缘情况，
+            // 缩小时不进行边缘计算会导致绘图时使用的是上个倍数的偏移量，绘图偏移量过大。导致边缘出现空白
+            boundaryCalc();
+            ctx?.drawImage(img,movingLenghtX*zoomBei+((docWidth-canvas.width)/2),movingLenghtY*zoomBei+((docHeight-canvas.height)/2),zoomBei*baseCanvasWidth ,zoomBei*baseCanvasHeight);
+    })
 
     function convertCanvasToImage(canvas:HTMLCanvasElement) {
         let image=new Image();
@@ -311,9 +309,17 @@ import {ref} from 'vue';
 
         .header {
             height: 5%;
+            width: 100%;
             border-radius: 20px 20px 0px 0px;
             background-color: lightskyblue;
             text-align: center;
+            display: flex;
+            span {
+                justify-self: right;
+                background-color: red;
+                width: 10px;
+                height: 100%;
+            }
         }
 
         .func {
