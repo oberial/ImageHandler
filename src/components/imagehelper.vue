@@ -31,40 +31,48 @@ import { onMounted } from 'vue';
 import {ref} from 'vue';
 
     type ScaleInfo={
-        isWidthScale:boolean,
+        isWidthScale?:boolean,
         scaleBei:number
     };
     type DoingType = "drag" | "draw"|"clip"|"none";
-    let canvas:HTMLCanvasElement;
-
-
-    let ctx:CanvasRenderingContext2D|null;
-    let img:any ;
-    let scaleInfo:ScaleInfo;
-    let scaleInfo2:ScaleInfo={scaleBei:1,isWidthScale:false};
-
-    let drawCenterX:number;
-    let drawCenterY:number;
-    let radius:number;
-
-
+    // 操作类型
     let doingTh=ref<DoingType>('none');
 
-    let baseCanvasHeight:number;
-    let baseCanvasWidth:number;
+    // 原始图像
+    let img:any ;
+    // 画布展示框大小及图像缩放参数
     let docHeight:number;
     let docWidth:number;
+    let scaleInfo:ScaleInfo;
 
-    let startPointX:number;
-    let startPointY:number;
-    let endPointX:number;
-    let endPointY:number;
 
+    // 实时画布对象、上下文及画布初始大小
+    let canvas:HTMLCanvasElement;
+    let ctx:CanvasRenderingContext2D|null;
+    let baseCanvasHeight:number;
+    let baseCanvasWidth:number;
+
+    // 原始画布x y轴移动坐标值
     let movingLenghtY:number=0;
     let movingLenghtX:number=0;
 
-    let zoom=ref<number>(0);
+    // 鼠标点击画布偏移量坐标
+    let startPointX:number;
+    let startPointY:number;
+    // 鼠标松开画布偏移量坐标
+    let endPointX:number;
+    let endPointY:number;
+
+
+    // 画图圆形、半径及画布圆形缩放到截图栏缩放系数
+    let drawCenterX:number;
+    let drawCenterY:number;
+    let radius:number;
+    let scaleInfo2:ScaleInfo={scaleBei:1};
+
+    // 缩放指数 ，缩放等级，及缩放倍数
     const zoomConst:number=1.1;
+    let zoom=ref<number>(0);
     let zoomBei=1;
 
     function drag() {
@@ -215,7 +223,6 @@ import {ref} from 'vue';
 
     function clip() {
         // let imageData=ctx?.getImageData(drawCenterX-radius,drawCenterY-radius,2*radius,2*radius) as ImageData ;
-        
         doingTh.value="clip";
         let c2 = document.createElement('canvas');
         // c2.height=canvas.height;
@@ -250,15 +257,12 @@ import {ref} from 'vue';
         baseCanvasHeight*zoomBei/scaleInfo2.scaleBei
         );
         // }
-        
-
         // ctx2?.putImageData(imageData,0,0);
     }
 
     function zoomTo(e:any) {
         zoom.value=e.target.value;
         zoomBei=round(Math.pow(zoomConst,zoom.value));
-
         canvas.height=baseCanvasHeight*zoomBei;
         canvas.width=baseCanvasWidth*zoomBei;
         ctx?.drawImage(img,((docWidth-canvas.width)/2),((docHeight-canvas.height)/2),zoomBei*img.width/(scaleInfo.scaleBei*scaleInfo2.scaleBei) ,zoomBei*img.height/(scaleInfo.scaleBei*scaleInfo2.scaleBei));
