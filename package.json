@@ -12,15 +12,29 @@
     "docs:serve": "vitepress serve docs"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.7",
+    "@fullcalendar/daygrid": "^6.1.7",
+    "@fullcalendar/interaction": "^6.1.7",
+    "@fullcalendar/timegrid": "^6.1.7",
+    "@fullcalendar/vue3": "^6.1.7",
+    "autoprefixer": "^10.4.14",
     "element-plus": "^2.2.28",
     "i18n": "^0.15.1",
     "path": "^0.12.7",
+    "postcss-flexbugs-fixes": "^5.0.2",
+    "postcss-selector-namespace": "^3.0.1",
     "sass": "^1.57.1",
+    "single-spa-vue": "^2.5.1",
+    "vite-plugin-index-html": "^2.0.2",
     "vitepress": "^1.0.0-alpha.45",
     "vue": "^3.2.45",
-    "vue3-carousel": "^0.2.9"
+    "vue-carousel": "^0.18.0",
+    "vue-router": "^4.1.6",
+    "vue3-carousel": "^0.2.9",
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
+    "@types/node": "^18.16.1",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vitejs/plugin-vue-jsx": "^3.0.0",
     "typescript": "^4.9.3",

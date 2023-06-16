@@ -12,9 +12,6 @@ interface Props {
 }
 export default defineComponent({
     props:['slideImage'],
-    methods: {
-
-    },
 
     setup(props:Props) {
         const helloref=ref<HTMLUListElement>();
